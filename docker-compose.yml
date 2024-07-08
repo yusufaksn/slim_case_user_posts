@@ -1,0 +1,51 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slim_app
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - slim_network
+
+  webserver:
+    image: nginx:1.19-alpine
+    container_name: slim_webserver
+    restart: always
+    ports:
+      - "8006:81"
+    volumes:
+      - .:/var/www
+      - ./conf/nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - slim_network
+
+  db:
+    image: mysql:5.7
+    container_name: slim_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: slimdb
+      MYSQL_USER: slimuser
+      MYSQL_PASSWORD: slimpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - slim_network
+
+networks:
+  slim_network:
+    driver: bridge
+
+volumes:
+  db-data:
